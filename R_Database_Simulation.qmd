@@ -1,0 +1,333 @@
+---
+title: "R Database Simulations"
+format:
+  html:
+    embed-resources: true
+    toc: true
+    number-sections: true
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+## Overview
+
+This report demonstrates three R database environments:
+
+1. In-memory database
+2. On-disk database
+3. Remote database (WRDS)
+
+## Setup
+```{r}
+library(tidyverse)
+library(dbplyr)
+library(connections)
+library(duckdb)
+library(RPostgres)
+```
+
+## Create Sample Data
+
+```{r}
+stock_prices <- tibble(
+  symbol = c(
+    rep("AAPL", 6),
+    rep("MSFT", 6),
+    rep("NVDA", 6)
+  ),
+  date = rep(seq.Date(as.Date("2024-01-01"), by = "day", length.out = 6), 3),
+  adjusted = c(
+    180, 181, 179, 183, 185, 186,
+    400, 402, 405, 407, 406, 410,
+    500, 505, 510, 515, 520, 530
+  ),
+  volume = c(
+    1000000, 1100000, 1200000, 1050000, 980000, 1150000,
+    900000, 950000, 1000000, 1020000, 970000, 990000,
+    1500000, 1520000, 1490000, 1510000, 1530000, 1550000
+  )
+)
+
+sp500_index <- tibble(
+  symbol = c("AAPL", "MSFT", "NVDA"),
+  weight = c(0.07, 0.06, 0.05)
+)
+
+stock_prices
+sp500_index
+```
+
+## 1. In-Memory Database
+
+Open an in-memory DuckDB connection.
+
+```{r}
+con <- connection_open(duckdb::duckdb())
+con
+```
+
+Copy the R data frames into the in-memory database.
+
+```{r}
+copy_to(con, stock_prices, name = "stock_price_table", overwrite = TRUE)
+copy_to(con, sp500_index, name = "sp500_index_table", overwrite = TRUE)
+```
+
+Run a SQL query directly on the database.
+
+```{r}
+tbl(
+  con,
+  sql("
+    SELECT symbol, date, adjusted
+    FROM stock_price_table
+    WHERE symbol = 'AAPL'
+    LIMIT 5
+  ")
+)
+```
+
+Assign database tables to R objects for dbplyr.
+
+```{r}
+stock_price_db <- tbl(con, "stock_price_table")
+sp500_index_db <- tbl(con, "sp500_index_table")
+
+stock_price_db
+sp500_index_db
+```
+
+Run a dbplyr query.
+
+```{r}
+stock_price_db |>
+  filter(symbol == "AAPL") |>
+  select(symbol, date, adjusted, volume)
+```
+
+Run a grouped summary query.
+
+```{r}
+stock_price_db |>
+  group_by(symbol) |>
+  summarize(
+    avg_price = mean(adjusted),
+    total_volume = sum(volume),
+    trading_days = n()
+  )
+```
+
+Close the in-memory connection.
+
+```{r}
+connection_close(con)
+```
+
+## 2. On-Disk Database
+
+Create a DuckDB database stored on disk.
+
+```{r}
+disk_path <- "disk_db.duckdb"
+
+if (file.exists(disk_path)) {
+  unlink(disk_path)
+}
+
+con_disk <- connection_open(
+  duckdb::duckdb(),
+  dbdir = disk_path
+)
+
+con_disk
+```
+
+Copy the data into permanent tables on disk.
+
+```{r}
+copy_to(
+  con_disk,
+  stock_prices,
+  name = "stock_price_table_disk",
+  temporary = FALSE,
+  overwrite = TRUE
+)
+
+copy_to(
+  con_disk,
+  sp500_index,
+  name = "sp500_index_table_disk",
+  temporary = FALSE,
+  overwrite = TRUE
+)
+```
+
+Query the on-disk tables.
+
+```{r}
+stock_price_db_disk <- tbl(con_disk, "stock_price_table_disk")
+sp500_index_db_disk <- tbl(con_disk, "sp500_index_table_disk")
+
+stock_price_db_disk |>
+  filter(adjusted > 200) |>
+  select(symbol, date, adjusted, volume)
+```
+
+Show that the database file exists on disk.
+
+```{r}
+file.info(disk_path)[, c("size", "mtime")]
+```
+
+Close and reopen the connection to prove persistence.
+
+```{r}
+connection_close(con_disk)
+
+con_disk2 <- connection_open(
+  duckdb::duckdb(),
+  dbdir = disk_path
+)
+
+con_disk2
+```
+
+Run another query after reconnecting.
+
+```{r}
+tbl(con_disk2, "stock_price_table_disk") |>
+  group_by(symbol) |>
+  summarize(
+    avg_price = mean(adjusted),
+    total_volume = sum(volume),
+    trading_days = n()
+  )
+```
+
+Close the on-disk connection.
+
+```{r}
+connection_close(con_disk2)
+```
+
+## 3. Remote Database (WRDS)
+
+This section connects to WRDS through PostgreSQL.
+
+Set your WRDS username and password in the R console before rendering.
+
+```{r}
+# Example only:
+# Sys.setenv(WRDS_USER = "your_username")
+# Sys.setenv(WRDS_PASSWORD = "your_password")
+```
+
+Check whether credentials are available.
+
+```{r}
+wrds_user <- Sys.getenv("WRDS_USER")
+wrds_password <- Sys.getenv("WRDS_PASSWORD")
+
+wrds_ready <- wrds_user != "" && wrds_password != ""
+wrds_ready
+```
+
+Open the WRDS connection only if credentials exist.
+
+```{r}
+if (wrds_ready) {
+  wrds_con <- connection_open(
+    RPostgres::Postgres(),
+    host = "wrds-pgdata.wharton.upenn.edu",
+    port = 9737,
+    dbname = "wrds",
+    sslmode = "require",
+    user = wrds_user,
+    password = wrds_password
+  )
+  
+  cat("Connected to WRDS successfully.\n")
+} else {
+  cat("WRDS credentials not found. Set WRDS_USER and WRDS_PASSWORD, then render again.\n")
+}
+```
+
+Browse schemas/tables on WRDS.
+
+```{r}
+if (wrds_ready) {
+  all_schema <- tbl(wrds_con, I("information_schema.tables")) |>
+    filter(table_type %in% c("VIEW", "FOREIGN TABLE")) |>
+    distinct(table_schema, table_name) |>
+    collect()
+
+  head(all_schema, 10)
+}
+```
+
+Optionally inspect one schema shown in your slides.
+
+```{r}
+if (wrds_ready) {
+  all_schema |>
+    filter(table_schema == "fisd") |>
+    head()
+}
+```
+
+Access Compustat fundamentals remotely.
+
+```{r}
+if (wrds_ready) {
+  funda_db <- tbl(wrds_con, I("comp.funda"))
+  funda_db
+}
+```
+
+Run a remote query and collect results into R.
+
+```{r}
+if (wrds_ready) {
+  funda_sample <- funda_db |>
+    filter(
+      indfmt == "INDL",
+      datafmt == "STD",
+      consol == "C",
+      datadate >= as.Date("1990-01-01")
+    ) |>
+    select(gvkey, datadate, seq, ceq, at, lt, capx, oancf) |>
+    head(10) |>
+    collect()
+
+  funda_sample
+}
+```
+
+Save the result to CSV and show the file size.
+
+```{r}
+if (wrds_ready) {
+  write_csv(funda_sample, "wrds_funda_sample.csv")
+  file.info("wrds_funda_sample.csv")[, "size", drop = FALSE]
+}
+```
+
+Close the WRDS connection.
+
+```{r}
+if (wrds_ready) {
+  connection_close(wrds_con)
+}
+```
+
+## Conclusion
+
+This report demonstrated:
+
+- an in-memory DuckDB database
+- an on-disk DuckDB database
+- a remote WRDS PostgreSQL database
+
+The HTML output includes both code and visible results, and `embed-resources: true` makes the rendered file self-contained.
