@@ -2575,7 +2575,7 @@ vertical-align: -.125em;
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="fu">file.info</span>(disk_path)[, <span class="fu">c</span>(<span class="st">&quot;size&quot;</span>, <span class="st">&quot;mtime&quot;</span>)]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>                size               mtime
-disk_db.duckdb 12288 2026-03-05 22:23:32</code></pre>
+disk_db.duckdb 12288 2026-03-06 15:31:21</code></pre>
 </div>
 </div>
 <p>Close and reopen the connection to prove persistence.</p>
@@ -2607,8 +2607,8 @@ disk_db.duckdb 12288 2026-03-05 22:23:32</code></pre>
   symbol avg_price total_volume trading_days
   &lt;chr&gt;      &lt;dbl&gt;        &lt;dbl&gt;        &lt;dbl&gt;
 1 NVDA        513.      9100000            6
-2 AAPL        182.      6480000            6
-3 MSFT        405       5830000            6</code></pre>
+2 MSFT        405       5830000            6
+3 AAPL        182.      6480000            6</code></pre>
 </div>
 </div>
 <p>Close the on-disk connection.</p>
@@ -2626,55 +2626,71 @@ disk_db.duckdb 12288 2026-03-05 22:23:32</code></pre>
 <span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Sys.setenv(WRDS_PASSWORD = &quot;your_password&quot;)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Check whether credentials are available.</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>wrds_user <span class="ot">&lt;-</span> <span class="fu">Sys.getenv</span>(<span class="st">&quot;WRDS_USER&quot;</span>)</span>
-<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a>wrds_password <span class="ot">&lt;-</span> <span class="fu">Sys.getenv</span>(<span class="st">&quot;WRDS_PASSWORD&quot;</span>)</span>
-<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a>wrds_ready <span class="ot">&lt;-</span> wrds_user <span class="sc">!=</span> <span class="st">&quot;&quot;</span> <span class="sc">&amp;&amp;</span> wrds_password <span class="sc">!=</span> <span class="st">&quot;&quot;</span></span>
-<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a>wrds_ready</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] FALSE</code></pre>
-</div>
-</div>
 <p>Open the WRDS connection only if credentials exist.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (wrds_ready) {</span>
-<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>  wrds_con <span class="ot">&lt;-</span> <span class="fu">connection_open</span>(</span>
-<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a>    RPostgres<span class="sc">::</span><span class="fu">Postgres</span>(),</span>
-<span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">host =</span> <span class="st">&quot;wrds-pgdata.wharton.upenn.edu&quot;</span>,</span>
-<span id="cb41-5"><a href="#cb41-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">port =</span> <span class="dv">9737</span>,</span>
-<span id="cb41-6"><a href="#cb41-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">dbname =</span> <span class="st">&quot;wrds&quot;</span>,</span>
-<span id="cb41-7"><a href="#cb41-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">sslmode =</span> <span class="st">&quot;require&quot;</span>,</span>
-<span id="cb41-8"><a href="#cb41-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">user =</span> wrds_user,</span>
-<span id="cb41-9"><a href="#cb41-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">password =</span> wrds_password</span>
-<span id="cb41-10"><a href="#cb41-10" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb41-11"><a href="#cb41-11" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb41-12"><a href="#cb41-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">&quot;Connected to WRDS successfully.</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb41-13"><a href="#cb41-13" aria-hidden="true" tabindex="-1"></a>} <span class="cf">else</span> {</span>
-<span id="cb41-14"><a href="#cb41-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">&quot;WRDS credentials not found. Set WRDS_USER and WRDS_PASSWORD, then render again.</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb41-15"><a href="#cb41-15" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (wrds_ready) {</span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a>  wrds_con <span class="ot">&lt;-</span> <span class="fu">connection_open</span>(</span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a>    RPostgres<span class="sc">::</span><span class="fu">Postgres</span>(),</span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">host =</span> <span class="st">&quot;wrds-pgdata.wharton.upenn.edu&quot;</span>,</span>
+<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">port =</span> <span class="dv">9737</span>,</span>
+<span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">dbname =</span> <span class="st">&quot;wrds&quot;</span>,</span>
+<span id="cb39-7"><a href="#cb39-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">sslmode =</span> <span class="st">&quot;require&quot;</span>,</span>
+<span id="cb39-8"><a href="#cb39-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">user =</span> wrds_user,</span>
+<span id="cb39-9"><a href="#cb39-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">password =</span> wrds_password</span>
+<span id="cb39-10"><a href="#cb39-10" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb39-11"><a href="#cb39-11" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb39-12"><a href="#cb39-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">&quot;Connected to WRDS successfully.</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb39-13"><a href="#cb39-13" aria-hidden="true" tabindex="-1"></a>} <span class="cf">else</span> {</span>
+<span id="cb39-14"><a href="#cb39-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">&quot;WRDS credentials not found. Set WRDS_USER and WRDS_PASSWORD, then render again.</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb39-15"><a href="#cb39-15" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>WRDS credentials not found. Set WRDS_USER and WRDS_PASSWORD, then render again.</code></pre>
+<pre><code>Connected to WRDS successfully.</code></pre>
 </div>
 </div>
 <p>Browse schemas/tables on WRDS.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (wrds_ready) {</span>
-<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>  all_schema <span class="ot">&lt;-</span> <span class="fu">tbl</span>(wrds_con, <span class="fu">I</span>(<span class="st">&quot;information_schema.tables&quot;</span>)) <span class="sc">|&gt;</span></span>
-<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(table_type <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">&quot;VIEW&quot;</span>, <span class="st">&quot;FOREIGN TABLE&quot;</span>)) <span class="sc">|&gt;</span></span>
-<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">distinct</span>(table_schema, table_name) <span class="sc">|&gt;</span></span>
-<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">collect</span>()</span>
-<span id="cb43-6"><a href="#cb43-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb43-7"><a href="#cb43-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">head</span>(all_schema, <span class="dv">10</span>)</span>
-<span id="cb43-8"><a href="#cb43-8" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (wrds_ready) {</span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>  all_schema <span class="ot">&lt;-</span> <span class="fu">tbl</span>(wrds_con, <span class="fu">I</span>(<span class="st">&quot;information_schema.tables&quot;</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(table_type <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">&quot;VIEW&quot;</span>, <span class="st">&quot;FOREIGN TABLE&quot;</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">distinct</span>(table_schema, table_name) <span class="sc">|&gt;</span></span>
+<span id="cb41-5"><a href="#cb41-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">collect</span>()</span>
+<span id="cb41-6"><a href="#cb41-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-7"><a href="#cb41-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">head</span>(all_schema, <span class="dv">10</span>)</span>
+<span id="cb41-8"><a href="#cb41-8" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 10 × 2
+   table_schema table_name                
+   &lt;chr&gt;        &lt;chr&gt;                     
+ 1 aha          hcris                     
+ 2 aha          hcris_3years              
+ 3 aha          hcris_company_table       
+ 4 aha          hcris_company_table_3years
+ 5 aha          it_survey                 
+ 6 aha          it_survey_3years          
+ 7 aha          it_survey_company_table   
+ 8 aha          summary_of_changes        
+ 9 ahasamp      annual_survey             
+10 ahasamp      hcris                     </code></pre>
+</div>
 </div>
 <p>Optionally inspect one schema shown in your slides.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb44"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (wrds_ready) {</span>
-<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a>  all_schema <span class="sc">|&gt;</span></span>
-<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(table_schema <span class="sc">==</span> <span class="st">&quot;fisd&quot;</span>) <span class="sc">|&gt;</span></span>
-<span id="cb44-4"><a href="#cb44-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">head</span>()</span>
-<span id="cb44-5"><a href="#cb44-5" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (wrds_ready) {</span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>  all_schema <span class="sc">|&gt;</span></span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(table_schema <span class="sc">==</span> <span class="st">&quot;fisd&quot;</span>) <span class="sc">|&gt;</span></span>
+<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">head</span>()</span>
+<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 6 × 2
+  table_schema table_name             
+  &lt;chr&gt;        &lt;chr&gt;                  
+1 fisd         fisd_agent             
+2 fisd         fisd_amount_outstanding
+3 fisd         fisd_amt_out_hist      
+4 fisd         fisd_announced_call    
+5 fisd         fisd_bankruptcy        
+6 fisd         fisd_bankruptcy_agent  </code></pre>
+</div>
 </div>
 <p>Access Compustat fundamentals remotely.</p>
 <div class="cell">
@@ -2682,36 +2698,78 @@ disk_db.duckdb 12288 2026-03-05 22:23:32</code></pre>
 <span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a>  funda_db <span class="ot">&lt;-</span> <span class="fu">tbl</span>(wrds_con, <span class="fu">I</span>(<span class="st">&quot;comp.funda&quot;</span>))</span>
 <span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a>  funda_db</span>
 <span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># Source:   table&lt;comp.funda&gt; [?? x 949]
+# Database: postgres  [jean124@wrds-pgdata.wharton.upenn.edu:9737/wrds]
+   gvkey datadate   fyear indfmt consol popsrc datafmt tic   cusip conm  acctchg
+   &lt;chr&gt; &lt;date&gt;     &lt;int&gt; &lt;chr&gt;  &lt;chr&gt;  &lt;chr&gt;  &lt;chr&gt;   &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;  
+ 1 0010… 1961-12-31  1961 INDL   C      D      STD     AE.2  0000… A &amp; … &lt;NA&gt;   
+ 2 0010… 1962-12-31  1962 INDL   C      D      STD     AE.2  0000… A &amp; … &lt;NA&gt;   
+ 3 0010… 1963-12-31  1963 INDL   C      D      STD     AE.2  0000… A &amp; … &lt;NA&gt;   
+ 4 0010… 1964-12-31  1964 INDL   C      D      STD     AE.2  0000… A &amp; … &lt;NA&gt;   
+ 5 0010… 1965-12-31  1965 INDL   C      D      STD     AE.2  0000… A &amp; … &lt;NA&gt;   
+ 6 0010… 1966-12-31  1966 INDL   C      D      STD     AE.2  0000… A &amp; … &lt;NA&gt;   
+ 7 0010… 1967-12-31  1967 INDL   C      D      STD     AE.2  0000… A &amp; … &lt;NA&gt;   
+ 8 0010… 1968-12-31  1968 INDL   C      D      STD     AE.2  0000… A &amp; … &lt;NA&gt;   
+ 9 0010… 1969-12-31  1969 INDL   C      D      STD     AE.2  0000… A &amp; … &lt;NA&gt;   
+10 0010… 1970-12-31  1970 INDL   C      D      STD     AE.2  0000… A &amp; … &lt;NA&gt;   
+# ℹ more rows
+# ℹ 938 more variables: acctstd &lt;chr&gt;, acqmeth &lt;chr&gt;, adrr &lt;dbl&gt;, ajex &lt;dbl&gt;,
+#   ajp &lt;dbl&gt;, bspr &lt;chr&gt;, compst &lt;chr&gt;, curcd &lt;chr&gt;, curncd &lt;chr&gt;,
+#   currtr &lt;dbl&gt;, curuscn &lt;dbl&gt;, final &lt;chr&gt;, fyr &lt;int&gt;, ismod &lt;int&gt;,
+#   ltcm &lt;chr&gt;, ogm &lt;chr&gt;, pddur &lt;int&gt;, scf &lt;int&gt;, src &lt;int&gt;, stalt &lt;chr&gt;,
+#   udpl &lt;chr&gt;, upd &lt;int&gt;, apdedate &lt;date&gt;, fdate &lt;date&gt;, pdate &lt;date&gt;,
+#   acchg &lt;dbl&gt;, acco &lt;dbl&gt;, accrt &lt;dbl&gt;, acdo &lt;dbl&gt;, aco &lt;dbl&gt;, acodo &lt;dbl&gt;, …</code></pre>
+</div>
 </div>
 <p>Run a remote query and collect results into R.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (wrds_ready) {</span>
-<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>  funda_sample <span class="ot">&lt;-</span> funda_db <span class="sc">|&gt;</span></span>
-<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(</span>
-<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a>      indfmt <span class="sc">==</span> <span class="st">&quot;INDL&quot;</span>,</span>
-<span id="cb46-5"><a href="#cb46-5" aria-hidden="true" tabindex="-1"></a>      datafmt <span class="sc">==</span> <span class="st">&quot;STD&quot;</span>,</span>
-<span id="cb46-6"><a href="#cb46-6" aria-hidden="true" tabindex="-1"></a>      consol <span class="sc">==</span> <span class="st">&quot;C&quot;</span>,</span>
-<span id="cb46-7"><a href="#cb46-7" aria-hidden="true" tabindex="-1"></a>      datadate <span class="sc">&gt;=</span> <span class="fu">as.Date</span>(<span class="st">&quot;1990-01-01&quot;</span>)</span>
-<span id="cb46-8"><a href="#cb46-8" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">|&gt;</span></span>
-<span id="cb46-9"><a href="#cb46-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(gvkey, datadate, seq, ceq, at, lt, capx, oancf) <span class="sc">|&gt;</span></span>
-<span id="cb46-10"><a href="#cb46-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">head</span>(<span class="dv">10</span>) <span class="sc">|&gt;</span></span>
-<span id="cb46-11"><a href="#cb46-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">collect</span>()</span>
-<span id="cb46-12"><a href="#cb46-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb46-13"><a href="#cb46-13" aria-hidden="true" tabindex="-1"></a>  funda_sample</span>
-<span id="cb46-14"><a href="#cb46-14" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb47"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (wrds_ready) {</span>
+<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a>  funda_sample <span class="ot">&lt;-</span> funda_db <span class="sc">|&gt;</span></span>
+<span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(</span>
+<span id="cb47-4"><a href="#cb47-4" aria-hidden="true" tabindex="-1"></a>      indfmt <span class="sc">==</span> <span class="st">&quot;INDL&quot;</span>,</span>
+<span id="cb47-5"><a href="#cb47-5" aria-hidden="true" tabindex="-1"></a>      datafmt <span class="sc">==</span> <span class="st">&quot;STD&quot;</span>,</span>
+<span id="cb47-6"><a href="#cb47-6" aria-hidden="true" tabindex="-1"></a>      consol <span class="sc">==</span> <span class="st">&quot;C&quot;</span>,</span>
+<span id="cb47-7"><a href="#cb47-7" aria-hidden="true" tabindex="-1"></a>      datadate <span class="sc">&gt;=</span> <span class="fu">as.Date</span>(<span class="st">&quot;1990-01-01&quot;</span>)</span>
+<span id="cb47-8"><a href="#cb47-8" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">|&gt;</span></span>
+<span id="cb47-9"><a href="#cb47-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(gvkey, datadate, seq, ceq, at, lt, capx, oancf) <span class="sc">|&gt;</span></span>
+<span id="cb47-10"><a href="#cb47-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">head</span>(<span class="dv">10</span>) <span class="sc">|&gt;</span></span>
+<span id="cb47-11"><a href="#cb47-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">collect</span>()</span>
+<span id="cb47-12"><a href="#cb47-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-13"><a href="#cb47-13" aria-hidden="true" tabindex="-1"></a>  funda_sample</span>
+<span id="cb47-14"><a href="#cb47-14" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 10 × 8
+   gvkey  datadate       seq     ceq    at    lt   capx  oancf
+   &lt;chr&gt;  &lt;date&gt;       &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;
+ 1 001414 2004-12-31  NA      NA      NA    NA   NA     NA    
+ 2 001414 2005-12-31  NA      NA      NA    NA   NA     NA    
+ 3 001003 1990-01-31  -0.416  -0.416  10.1  10.5  0.068 -0.032
+ 4 001414 2006-12-31  NA      NA      NA    NA   NA     NA    
+ 5 001004 1990-05-31 190.    190.    389.  199.  18.4   19.4  
+ 6 001004 1991-05-31 194.    194.    380.  186.   8.88  36.9  
+ 7 001004 1992-05-31 197.    197.    395.  199.   8.22   8.81 
+ 8 001004 1993-05-31 189.    189.    365.  176.   8.92  16.8  
+ 9 001004 1994-05-31 189.    189.    418.  228.   5.98   6.70 
+10 001004 1995-05-31 197.    197.    426.  229.   9.07  15.3  </code></pre>
+</div>
 </div>
 <p>Save the result to CSV and show the file size.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb47"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (wrds_ready) {</span>
-<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">write_csv</span>(funda_sample, <span class="st">&quot;wrds_funda_sample.csv&quot;</span>)</span>
-<span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">file.info</span>(<span class="st">&quot;wrds_funda_sample.csv&quot;</span>)[, <span class="st">&quot;size&quot;</span>, drop <span class="ot">=</span> <span class="cn">FALSE</span>]</span>
-<span id="cb47-4"><a href="#cb47-4" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb49"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (wrds_ready) {</span>
+<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">write_csv</span>(funda_sample, <span class="st">&quot;wrds_funda_sample.csv&quot;</span>)</span>
+<span id="cb49-3"><a href="#cb49-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">file.info</span>(<span class="st">&quot;wrds_funda_sample.csv&quot;</span>)[, <span class="st">&quot;size&quot;</span>, drop <span class="ot">=</span> <span class="cn">FALSE</span>]</span>
+<span id="cb49-4"><a href="#cb49-4" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                      size
+wrds_funda_sample.csv  583</code></pre>
+</div>
 </div>
 <p>Close the WRDS connection.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (wrds_ready) {</span>
-<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">connection_close</span>(wrds_con)</span>
-<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb51"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (wrds_ready) {</span>
+<span id="cb51-2"><a href="#cb51-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">connection_close</span>(wrds_con)</span>
+<span id="cb51-3"><a href="#cb51-3" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 <section id="conclusion" class="level2" data-number="7">

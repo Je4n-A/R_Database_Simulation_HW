@@ -227,11 +227,16 @@ Set your WRDS username and password in the R console before rendering.
 Check whether credentials are available.
 
 ```{r}
+#| include: false
+
+Sys.setenv(
+  WRDS_USER = "jean124",
+  WRDS_PASSWORD = "!bF#3jf&ZX2ftW?"
+)
+
 wrds_user <- Sys.getenv("WRDS_USER")
 wrds_password <- Sys.getenv("WRDS_PASSWORD")
-
 wrds_ready <- wrds_user != "" && wrds_password != ""
-wrds_ready
 ```
 
 Open the WRDS connection only if credentials exist.
